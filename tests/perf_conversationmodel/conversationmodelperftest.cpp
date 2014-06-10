@@ -132,7 +132,7 @@ void ConversationModelPerfTest::getEvents()
         e.setStartTime(when.addSecs(ei));
         e.setEndTime(when.addSecs(ei));
         e.setLocalUid(RING_ACCOUNT);
-        e.setRemoteUid(remoteUids.at(0));
+        e.setRecipients(Recipient(RING_ACCOUNT, remoteUids.at(0)));
         e.setFreeText(randomMessage(qrand() % 49 + 1)); // Max 50 words / message
         e.setIsDraft(false);
         e.setIsMissedCall(false);
