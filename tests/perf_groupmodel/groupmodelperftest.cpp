@@ -159,7 +159,7 @@ void GroupModelPerfTest::getGroups()
     while(gi < groups) {
         Group grp;
         grp.setLocalUid(RING_ACCOUNT);
-        grp.setRemoteUids(QStringList() << remoteUids.at(contactIndices.at(gi)));
+        grp.setRecipients(RecipientList::fromUids(ACCOUNT1, QStringList() << remoteUids.at(contactIndices.at(gi))));
 
         QVERIFY(addModel.addGroup(grp));
         groupList << grp;
@@ -190,7 +190,7 @@ void GroupModelPerfTest::getGroups()
             e.setStartTime(when.addSecs(i));
             e.setEndTime(when.addSecs(i));
             e.setLocalUid(RING_ACCOUNT);
-            e.setRemoteUid(grp.remoteUids().at(0));
+            e.setRemoteUid(grp.recipients().at(0).remoteUid());
             e.setFreeText(randomMessage(qrand() % 49 + 1));  // Max 50 words / message
             e.setIsDraft(false);
             e.setIsMissedCall(false);
@@ -230,8 +230,7 @@ void GroupModelPerfTest::getGroups()
         bool result = false;
 
         GroupManager manager;
-        //manager.setResolveContacts(resolve);
-        Q_UNUSED(resolve)
+        manager.setResolveContacts(resolve);
 
         fetchModel.setManager(&manager);
 
