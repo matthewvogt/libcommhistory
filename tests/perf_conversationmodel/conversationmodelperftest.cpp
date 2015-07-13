@@ -131,7 +131,7 @@ void ConversationModelPerfTest::getEvents()
         e.setGroupId(group1.id());
         e.setStartTime(when.addSecs(ei));
         e.setEndTime(when.addSecs(ei));
-        e.setLocalUid(ACCOUNT1);
+        e.setLocalUid(RING_ACCOUNT);
         e.setRemoteUid(remoteUids.at(0));
         e.setFreeText(randomMessage(qrand() % 49 + 1)); // Max 50 words / message
         e.setIsDraft(false);
