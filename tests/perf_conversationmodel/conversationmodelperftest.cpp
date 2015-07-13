@@ -32,8 +32,6 @@ using namespace CommHistory;
 
 Group group1, group2;
 
-const int TIMEOUT = 5000;
-
 void ConversationModelPerfTest::initTestCase()
 {
     logFile = new QFile("libcommhistory-performance-test.log");
@@ -43,13 +41,12 @@ void ConversationModelPerfTest::initTestCase()
     }
 
     qsrand( QDateTime::currentDateTime().toTime_t() );
+
+    deleteAll();
 }
 
 void ConversationModelPerfTest::init()
 {
-    deleteAll();
-    QTest::qWait(TIMEOUT);
-    waitForIdle();
 }
 
 void ConversationModelPerfTest::getEvents_data()
@@ -63,14 +60,25 @@ void ConversationModelPerfTest::getEvents_data()
     // Number of messages to fetch from db. Negative value fetches all messages
     QTest::addColumn<int>("limit");
 
-    QTest::newRow("10 messages, 3 contacts") << 10 << 3 << -1;
-    QTest::newRow("10 messages, 300 contacts") << 10 << 300 << -1;
-    QTest::newRow("100 messages, 3 contacts") << 100 << 3 << -1;
-    QTest::newRow("100 messages, 300 contacts") << 100 << 300 << -1;
-    QTest::newRow("1000 messages, 3 contacts") << 1000 << 3 << -1;
-    QTest::newRow("1000 messages, 300 contacts") << 1000 << 300 << -1;
-    QTest::newRow("1000 messages, 3 contacts, limit 25") << 1000 << 3 << 25;
-    QTest::newRow("1000 messages, 300 contacts, limit 25") << 1000 << 300 << 25;
+    // Whether to resolve UIDs to contacts
+    QTest::addColumn<bool>("resolve");
+
+    QTest::newRow("10 messages, 3 contacts") << 10 << 3 << -1 << false;
+    QTest::newRow("10 messages, 3 contacts with resolve") << 10 << 3 << -1 << true;
+    QTest::newRow("100 messages, 3 contacts") << 100 << 3 << -1 << false;
+    QTest::newRow("100 messages, 3 contacts with resolve") << 100 << 3 << -1 << true;
+    QTest::newRow("1000 messages, 3 contacts") << 1000 << 3 << -1 << false;
+    QTest::newRow("1000 messages, 3 contacts with resolve") << 1000 << 3 << -1 << true;
+    QTest::newRow("1000 messages, 3 contacts, limit 25") << 1000 << 3 << 25 << false;
+    QTest::newRow("1000 messages, 3 contacts, limit 25 with resolve") << 1000 << 3 << 25 << true;
+    QTest::newRow("10 messages, 300 contacts") << 10 << 300 << -1 << false;
+    QTest::newRow("10 messages, 300 contacts with resolve") << 10 << 300 << -1 << true;
+    QTest::newRow("100 messages, 300 contacts") << 100 << 300 << -1 << false;
+    QTest::newRow("100 messages, 300 contacts with resolve") << 100 << 300 << -1 << true;
+    QTest::newRow("1000 messages, 300 contacts") << 1000 << 300 << -1 << false;
+    QTest::newRow("1000 messages, 300 contacts with resolve") << 1000 << 300 << -1 << true;
+    QTest::newRow("1000 messages, 300 contacts, limit 25") << 1000 << 300 << 25 << false;
+    QTest::newRow("1000 messages, 300 contacts, limit 25 with resolve") << 1000 << 300 << 25 << true;
 }
 
 void ConversationModelPerfTest::getEvents()
@@ -78,10 +86,14 @@ void ConversationModelPerfTest::getEvents()
     QFETCH(int, messages);
     QFETCH(int, contacts);
     QFETCH(int, limit);
+    QFETCH(bool, resolve);
 
     qRegisterMetaType<QModelIndex>("QModelIndex");
 
     QDateTime startTime = QDateTime::currentDateTime();
+
+    cleanupTestGroups();
+    cleanupTestEvents();
 
     addTestGroups( group1, group2 );
 
@@ -90,29 +102,41 @@ void ConversationModelPerfTest::getEvents()
     commitBatchSize = PERF_BATCH_SIZE;
     #endif
 
-    EventModel addModel;
-    QDateTime when = QDateTime::currentDateTime();
-    QList<QString> remoteUids;
+    qDebug() << __FUNCTION__ << "- Creating" << contacts << "contacts";
 
-    qDebug() << __FUNCTION__ << "- Creating" << contacts << "new contacts";
+    QList<QPair<QString, QPair<QString, QString> > > contactDetails;
 
-    int ci = 0;
+    int ci = remoteUids.count();
     while(ci < contacts) {
-        ci++;
-        QString phoneNumber = QString().setNum(qrand() % 10000000);
+        QString phoneNumber;
+        do {
+            phoneNumber = QString().setNum(qrand() % 10000000);
+        } while (remoteUids.contains(phoneNumber));
         remoteUids << phoneNumber;
-        addTestContact(QString("Test Contact %1").arg(ci), phoneNumber);
+        contactIndices << ci;
+        ci++;
+
+        contactDetails.append(qMakePair(QString("Test Contact %1").arg(ci), qMakePair(phoneNumber, QString())));
 
         if(ci % commitBatchSize == 0 && ci < contacts) {
             qDebug() << __FUNCTION__ << "- adding" << commitBatchSize
                 << "contacts (" << ci << "/" << contacts << ")";
-            waitForIdle(5000);
+            addTestContacts(contactDetails);
+            contactDetails.clear();
         }
     }
-    qDebug() << __FUNCTION__ << "- adding rest of the contacts ("
-        << ci << "/" << contacts << ")";
-    waitForIdle(5000);
-    QTest::qWait(TIMEOUT);
+    if (!contactDetails.isEmpty()) {
+        qDebug() << __FUNCTION__ << "- adding rest of the contacts ("
+                 << ci << "/" << contacts << ")";
+        addTestContacts(contactDetails);
+        contactDetails.clear();
+    }
+
+    // Randomize the contact indices
+    random_shuffle(contactIndices.begin(), contactIndices.end());
+
+    EventModel addModel;
+    QDateTime when = QDateTime::currentDateTime();
 
     qDebug() << __FUNCTION__ << "- Creating" << messages << "new messages";
 
@@ -131,8 +155,8 @@ void ConversationModelPerfTest::getEvents()
         e.setGroupId(group1.id());
         e.setStartTime(when.addSecs(ei));
         e.setEndTime(when.addSecs(ei));
-        e.setLocalUid(ACCOUNT1);
-        e.setRemoteUid(remoteUids.at(0));
+        e.setLocalUid(RING_ACCOUNT);
+        e.setRemoteUid(remoteUids.at(contactIndices.at(qrand() % contacts)));
         e.setFreeText(randomMessage(qrand() % 49 + 1)); // Max 50 words / message
         e.setIsDraft(false);
         e.setIsMissedCall(false);
@@ -144,7 +168,6 @@ void ConversationModelPerfTest::getEvents()
                 << "messages (" << ei << "/" << messages << ")";
             QVERIFY(addModel.addEvents(eventList, false));
             eventList.clear();
-            waitForIdle();
         }
     }
 
@@ -152,7 +175,6 @@ void ConversationModelPerfTest::getEvents()
     qDebug() << __FUNCTION__ << "- adding rest of the messages ("
         << ei << "/" << messages << ")";
     eventList.clear();
-    waitForIdle();
 
     int iterations = 10;
     int sum = 0;
@@ -170,43 +192,34 @@ void ConversationModelPerfTest::getEvents()
         }
     }
 
-    QTest::qWait(TIMEOUT);
-
     qDebug() << __FUNCTION__ << "- Fetching messages." << iterations << "iterations";
     for(int i = 0; i < iterations; i++) {
 
         ConversationModel fetchModel;
-        bool result = false;
+        fetchModel.setResolveContacts(resolve);
 
-        QSignalSpy rowsInserted(&fetchModel, SIGNAL(rowsInserted(const QModelIndex &, int, int)));
-
-        if (limit < 0) {
-            fetchModel.setQueryMode(EventModel::SyncQuery);
-        } else {
+        if (limit > 0) {
             fetchModel.setQueryMode(EventModel::StreamedAsyncQuery);
             fetchModel.setFirstChunkSize(limit);
             fetchModel.setChunkSize(limit);
         }
 
+        waitForIdle();
+
         QTime time;
         time.start();
-        result = fetchModel.getEvents(group1.id());
+        bool result = fetchModel.getEvents(group1.id());
+        QVERIFY(result);
 
-        if(limit >= 0) {
-            while (time.elapsed() < 10000 && rowsInserted.isEmpty())
-            QCoreApplication::processEvents();
-        }
+        if (!fetchModel.isReady())
+            waitForSignal(&fetchModel, SIGNAL(modelReady(bool)));
 
         int elapsed = time.elapsed();
         times << elapsed;
         sum += elapsed;
         qDebug("Time elapsed: %d ms", elapsed);
 
-        QVERIFY(result);
         QVERIFY(fetchModel.rowCount() > 0);
-
-        // With 1000 messages deleting model right away results in segfault
-        waitForIdle();
     }
 
     if(logFile) {
@@ -234,11 +247,11 @@ void ConversationModelPerfTest::getEvents()
     float mean = sum / (float)iterations;
     int testSecs = startTime.secsTo(QDateTime::currentDateTime());
 
-    qDebug("##### Mean: %.1f; Median: %.1f; Test time: %dsec", mean, median, testSecs);
+    qDebug("##### Mean: %.1f; Median: %.1f; Min: %d; Max: %d; Test time: %dsec", mean, median, times[0], times[iterations-1], testSecs);
 
     if(logFile) {
         QTextStream out(logFile);
-        out << "Median average: " << (int)median << " ms. Test time: ";
+        out << "Median average: " << (int)median << " ms. Min:" << times[0] << "ms. Max:" << times[iterations-1] << " ms. Test time: ";
         if (testSecs > 3600) { out << (testSecs / 3600) << "h "; }
         if (testSecs > 60) { out << ((testSecs % 3600) / 60) << "m "; }
         out << ((testSecs % 3600) % 60) << "s\n";
@@ -247,15 +260,13 @@ void ConversationModelPerfTest::getEvents()
 
 void ConversationModelPerfTest::cleanupTestCase()
 {
-    deleteAll();
-    QTest::qWait(TIMEOUT);
-    waitForIdle();
-
     if(logFile) {
         logFile->close();
         delete logFile;
         logFile = 0;
     }
+
+    deleteAll();
 }
 
 QTEST_MAIN(ConversationModelPerfTest)

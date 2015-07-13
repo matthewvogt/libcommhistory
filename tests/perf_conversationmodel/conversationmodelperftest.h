@@ -42,6 +42,8 @@ private slots:
 
 private:
     QFile *logFile;
+    QStringList remoteUids;
+    QList<int> contactIndices;
 };
 
 #endif
