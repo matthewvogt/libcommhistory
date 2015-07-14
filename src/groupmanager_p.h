@@ -45,8 +45,6 @@ class GroupManagerPrivate : public QObject
     Q_DECLARE_PUBLIC(GroupManager)
 
 public:
-    typedef ContactListener::ContactAddress ContactAddress;
-
     GroupManager *q_ptr;
 
     GroupManagerPrivate(GroupManager *parent = 0);
@@ -75,12 +73,7 @@ public Q_SLOTS:
 
     void groupsDeletedSlot(const QList<int> &groupIds);
 
-    void slotContactUpdated(quint32 localId,
-                            const QString &contactName,
-                            const QList<ContactAddress> &contactAddresses);
-
-    void slotContactRemoved(quint32 localId);
-
+    void slotContactInfoChanged(const RecipientList &recipients);
     void contactResolveFinished();
 
 public:
