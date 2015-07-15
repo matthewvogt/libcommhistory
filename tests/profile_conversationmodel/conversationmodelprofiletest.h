@@ -20,22 +20,23 @@
 **
 ******************************************************************************/
 
-#ifndef GROUPMODELPERFTEST_H
-#define GROUPMODELPERFTEST_H
+#ifndef CONVERSATIONMODELPROFILETEST_H
+#define CONVERSATIONMODELPROFILETEST_H
 
 #include <QObject>
 #include <QFile>
 #include <QStringList>
 
-class GroupModelPerfTest : public QObject
+class ConversationModelProfileTest : public QObject
 {
     Q_OBJECT
 
 private slots:
     void initTestCase();
     void init();
-    void getGroups_data();
-    void getGroups();
+    void prepare();
+    void execute();
+    void finalise();
     void cleanupTestCase();
 
 private:

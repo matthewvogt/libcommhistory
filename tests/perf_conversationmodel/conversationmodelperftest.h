@@ -25,9 +25,7 @@
 
 #include <QObject>
 #include <QFile>
-#include "conversationmodel.h"
-
-using namespace CommHistory;
+#include <QStringList>
 
 class ConversationModelPerfTest : public QObject
 {

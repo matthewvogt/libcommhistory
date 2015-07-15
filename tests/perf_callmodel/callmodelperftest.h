@@ -25,11 +25,7 @@
 
 #include <QObject>
 #include <QFile>
-#include "callmodel.h"
-
-using namespace CommHistory;
-
-class TestCallPerfItem;
+#include <QStringList>
 
 class CallModelPerfTest : public QObject
 {

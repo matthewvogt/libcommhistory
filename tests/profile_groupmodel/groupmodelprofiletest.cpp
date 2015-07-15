@@ -20,85 +20,37 @@
 **
 ******************************************************************************/
 
+#include "groupmodelprofiletest.h"
+#include "groupmodel.h"
+#include "common.h"
 #include <QtTest/QtTest>
 #include <QDateTime>
 #include <QDBusConnection>
 #include <QModelIndex>
 #include <cstdlib>
-#include "groupmodelperftest.h"
-#include "groupmodel.h"
-#include "common.h"
 
 using namespace CommHistory;
 
-void GroupModelPerfTest::initTestCase()
+void GroupModelProfileTest::initTestCase()
 {
-    logFile = new QFile("libcommhistory-performance-test.log");
-    if(!logFile->open(QIODevice::Append)) {
-        qDebug() << "!!!! Failed to open log file !!!!";
-        logFile = 0;
-    }
+    logFile = 0;
 
     qsrand( QDateTime::currentDateTime().toTime_t() );
+}
+
+void GroupModelProfileTest::init()
+{
+}
+
+void GroupModelProfileTest::prepare()
+{
+    const int groups = 1000;
+    const int messages = 10;
+    const int contacts = 1000;
 
     deleteAll();
-}
 
-void GroupModelPerfTest::init()
-{
-}
-
-void GroupModelPerfTest::getGroups_data()
-{
-    QTest::addColumn<int>("groups");
-    QTest::addColumn<int>("messages");
-    QTest::addColumn<int>("contacts");
-    QTest::addColumn<bool>("resolve");
-
-    QTest::newRow("10 groups of 1 message, from 10 contacts") << 10 << 1 << 10 << false;
-    QTest::newRow("10 groups of 1 message, from 10 contacts with resolve") << 10 << 1 << 10 << true;
-    QTest::newRow("10 groups of 10 messages, from 10 contacts") << 10 << 10 << 10 << false;
-    QTest::newRow("10 groups of 10 messages, from 10 contacts with resolve") << 10 << 10 << 10 << true;
-    QTest::newRow("10 groups of 100 messages, from 10 contacts") << 10 << 100 << 10 << false;
-    QTest::newRow("10 groups of 100 messages, from 10 contacts with resolve") << 10 << 100 << 10 << true;
-
-    QTest::newRow("10 groups of 100 messages, from 100 contacts") << 10 << 100 << 100 << false;
-    QTest::newRow("10 groups of 100 messages, from 100 contacts with resolve") << 10 << 100 << 100 << true;
-
-    QTest::newRow("100 groups of 1 message, from 100 contacts") << 100 << 1 << 100 << false;
-    QTest::newRow("100 groups of 1 message, from 100 contacts with resolve") << 100 << 1 << 100 << true;
-    QTest::newRow("100 groups of 10 messages, from 100 contacts") << 100 << 10 << 100 << false;
-    QTest::newRow("100 groups of 10 messages, from 100 contacts with resolve") << 100 << 10 << 100 << true;
-    QTest::newRow("100 groups of 100 messages, from 100 contacts") << 100 << 100 << 100 << false;
-    QTest::newRow("100 groups of 100 messages, from 100 contacts with resolve") << 100 << 100 << 100 << true;
-
-    QTest::newRow("100 groups of 100 messages, from 1000 contacts") << 10 << 100 << 1000 << false;
-    QTest::newRow("100 groups of 100 messages, from 1000 contacts with resolve") << 10 << 100 << 1000 << true;
-
-    QTest::newRow("1000 groups of 1 message, from 1000 contacts") << 1000 << 1 << 1000 << false;
-    QTest::newRow("1000 groups of 1 message, from 1000 contacts with resolve") << 1000 << 1 << 1000 << true;
-    QTest::newRow("1000 groups of 10 messages, from 1000 contacts") << 1000 << 10 << 1000 << false;
-    QTest::newRow("1000 groups of 10 messages, from 1000 contacts with resolve") << 1000 << 10 << 1000 << true;
-    QTest::newRow("1000 groups of 100 messages, from 1000 contacts") << 1000 << 100 << 1000 << false;
-    QTest::newRow("1000 groups of 100 messages, from 1000 contacts with resolve") << 1000 << 100 << 1000 << true;
-}
-
-void GroupModelPerfTest::getGroups()
-{
-    QFETCH(int, groups);
-    QFETCH(int, messages);
-    QFETCH(int, contacts);
-    QFETCH(bool, resolve);
-
-    QDateTime startTime = QDateTime::currentDateTime();
-
-    cleanupTestGroups();
-    cleanupTestEvents();
-
-    int commitBatchSize = 75;
-    #ifdef PERF_BATCH_SIZE
-    commitBatchSize = PERF_BATCH_SIZE;
-    #endif
+    int commitBatchSize = 100;
 
     GroupModel addModel;
     QDateTime when = QDateTime::currentDateTime();
@@ -188,22 +140,24 @@ void GroupModelPerfTest::getGroups()
                  << gi << "/" << groups << ")";
         eventList.clear();
     }
+}
+
+void GroupModelProfileTest::execute()
+{
+    const bool resolve = false;
 
     int sum = 0;
     QList<int> times;
 
-    int iterations = 10;
-    #ifdef PERF_ITERATIONS
-    iterations = PERF_ITERATIONS;
-    #endif
+    int iterations = 1;
 
-    char *iterVar = getenv("PERF_ITERATIONS");
-    if (iterVar) {
-        int iters = QString::fromLatin1(iterVar).toInt();
-        if (iters > 0) {
-            iterations = iters;
-        }
+    logFile = new QFile("libcommhistory-performance-test.log");
+    if(!logFile->open(QIODevice::Append)) {
+        qDebug() << "!!!! Failed to open log file !!!!";
+        logFile = 0;
     }
+
+    QDateTime startTime = QDateTime::currentDateTime();
 
     qDebug() << __FUNCTION__ << "- Fetching groups." << iterations << "iterations";
     for(int i = 0; i < iterations; i++) {
@@ -220,6 +174,7 @@ void GroupModelPerfTest::getGroups()
 
         QTime time;
         time.start();
+
         bool result = fetchModel.getGroups();
         QVERIFY(result);
 
@@ -231,7 +186,7 @@ void GroupModelPerfTest::getGroups()
         sum += elapsed;
         qDebug("Time elapsed: %d ms", elapsed);
 
-        QCOMPARE(fetchModel.rowCount(), groups);
+        QVERIFY(fetchModel.rowCount() > 0);
     }
 
     if(logFile) {
@@ -270,15 +225,18 @@ void GroupModelPerfTest::getGroups()
     }
 }
 
-void GroupModelPerfTest::cleanupTestCase()
+void GroupModelProfileTest::finalise()
+{
+    deleteAll();
+}
+
+void GroupModelProfileTest::cleanupTestCase()
 {
     if(logFile) {
         logFile->close();
         delete logFile;
         logFile = 0;
     }
-
-    deleteAll();
 }
 
-QTEST_MAIN(GroupModelPerfTest)
+QTEST_MAIN(GroupModelProfileTest)
