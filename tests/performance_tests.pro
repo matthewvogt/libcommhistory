@@ -24,8 +24,10 @@
 
 TEMPLATE = subdirs
 SUBDIRS = perf_callmodel \
+          perf_callmodel_parts \
 		  perf_conversationmodel \
-		  perf_groupmodel
+		  perf_groupmodel \
+		  perf_groupmodel_parts
 
 # make sure the destination path exists
 !system( mkdir -p $${OUT_PWD}/perf_bin ) : \
