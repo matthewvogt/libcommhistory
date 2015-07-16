@@ -68,6 +68,7 @@ void GroupModelPerfTest::getGroups_data()
     QTest::addColumn<int>("contacts");
     QTest::addColumn<bool>("resolve");
 
+#if 0
     QTest::newRow("10 groups of 1 message, from 10 contacts") << 10 << 1 << 10 << false;
     QTest::newRow("10 groups of 1 message, from 10 contacts with resolve") << 10 << 1 << 10 << true;
     QTest::newRow("10 groups of 10 messages, from 10 contacts") << 10 << 10 << 10 << false;
@@ -87,6 +88,7 @@ void GroupModelPerfTest::getGroups_data()
 
     QTest::newRow("100 groups of 100 messages, from 1000 contacts") << 10 << 100 << 1000 << false;
     QTest::newRow("100 groups of 100 messages, from 1000 contacts with resolve") << 10 << 100 << 1000 << true;
+#endif
 
     QTest::newRow("1000 groups of 1 message, from 1000 contacts") << 1000 << 1 << 1000 << false;
     QTest::newRow("1000 groups of 1 message, from 1000 contacts with resolve") << 1000 << 1 << 1000 << true;
@@ -210,9 +212,10 @@ void GroupModelPerfTest::getGroups()
     int sum = 0;
     QList<int> times;
 
-    int iterations = 10;
+    //int iterations = 10;
+    int iterations = 3;
     #ifdef PERF_ITERATIONS
-    iterations = PERF_ITERATIONS;
+    //iterations = PERF_ITERATIONS;
     #endif
 
     char *iterVar = getenv("PERF_ITERATIONS");
