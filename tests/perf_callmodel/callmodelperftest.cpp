@@ -54,28 +54,36 @@ void CallModelPerfTest::getEvents_data()
     QTest::addColumn<int>("selected");
     QTest::addColumn<bool>("resolve");
 
+#if 0
     QTest::newRow("10 events, 1 of 3 contacts") << 10 << 3 << 1 << false;
     QTest::newRow("10 events, 1 of 3 contacts with resolve") << 10 << 3 << 1 << true;
     QTest::newRow("100 events, 1 of 3 contacts") << 100 << 3 << 1 << false;
     QTest::newRow("100 events, 1 of 3 contacts with resolve") << 100 << 3 << 1 << true;
+#endif
     QTest::newRow("1000 events, 1 of 3 contacts") << 1000 << 3 << 1 << false;
     QTest::newRow("1000 events, 1 of 3 contacts with resolve") << 1000 << 3 << 1 << true;
+#if 0
     QTest::newRow("10 events, 3 of 3 contacts") << 10 << 3 << 3 << false;
     QTest::newRow("10 events, 3 of 3 contacts with resolve") << 10 << 3 << 3 << true;
     QTest::newRow("100 events, 3 of 3 contacts") << 100 << 3 << 3 << false;
     QTest::newRow("100 events, 3 of 3 contacts with resolve") << 100 << 3 << 3 << true;
+#endif
     QTest::newRow("1000 events, 3 of 3 contacts") << 1000 << 3 << 3 << false;
     QTest::newRow("1000 events, 3 of 3 contacts with resolve") << 1000 << 3 << 3 << true;
+#if 0
     QTest::newRow("10 events, 1 of 300 contacts") << 10 << 300 << 1 << false;
     QTest::newRow("10 events, 1 of 300 contacts with resolve") << 10 << 300 << 1 << true;
     QTest::newRow("100 events, 1 of 300 contacts") << 100 << 300 << 1 << false;
     QTest::newRow("100 events, 1 of 300 contacts with resolve") << 100 << 300 << 1 << true;
+#endif
     QTest::newRow("1000 events, 1 of 300 contacts") << 1000 << 300 << 1 << false;
     QTest::newRow("1000 events, 1 of 300 contacts with resolve") << 1000 << 300 << 1 << true;
+#if 0
     QTest::newRow("10 events, 300 of 300 contacts") << 10 << 300 << 300 << false;
     QTest::newRow("10 events, 300 of 300 contacts with resolve") << 10 << 300 << 300 << true;
     QTest::newRow("100 events, 300 of 300 contacts") << 100 << 300 << 300 << false;
     QTest::newRow("100 events, 300 of 300 contacts with resolve") << 100 << 300 << 300 << true;
+#endif
     QTest::newRow("1000 events, 300 of 300 contacts") << 1000 << 300 << 300 << false;
     QTest::newRow("1000 events, 300 of 300 contacts with resolve") << 1000 << 300 << 300 << true;
 }
@@ -180,9 +188,10 @@ void CallModelPerfTest::getEvents()
 
     QList<int> times;
 
-    int iterations = 10;
+    //int iterations = 10;
+    int iterations = 3;
     #ifdef PERF_ITERATIONS
-    iterations = PERF_ITERATIONS;
+    //iterations = PERF_ITERATIONS;
     #endif
 
     char *iterVar = getenv("PERF_ITERATIONS");
