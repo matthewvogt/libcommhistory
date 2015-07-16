@@ -62,6 +62,7 @@ void ConversationModelPerfTest::getEvents_data()
     // Whether to resolve UIDs to contacts
     QTest::addColumn<bool>("resolve");
 
+#if 0
     QTest::newRow("10 messages, 3 contacts") << 10 << 3 << -1 << false;
     QTest::newRow("10 messages, 3 contacts with resolve") << 10 << 3 << -1 << true;
     QTest::newRow("100 messages, 3 contacts") << 100 << 3 << -1 << false;
@@ -74,6 +75,7 @@ void ConversationModelPerfTest::getEvents_data()
     QTest::newRow("10 messages, 300 contacts with resolve") << 10 << 300 << -1 << true;
     QTest::newRow("100 messages, 300 contacts") << 100 << 300 << -1 << false;
     QTest::newRow("100 messages, 300 contacts with resolve") << 100 << 300 << -1 << true;
+#endif
     QTest::newRow("1000 messages, 300 contacts") << 1000 << 300 << -1 << false;
     QTest::newRow("1000 messages, 300 contacts with resolve") << 1000 << 300 << -1 << true;
     QTest::newRow("1000 messages, 300 contacts, limit 25") << 1000 << 300 << 25 << false;

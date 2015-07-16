@@ -54,6 +54,7 @@ void RecentContactsModelPerfTest::getEvents_data()
     QTest::addColumn<int>("contacts");
     QTest::addColumn<int>("limit");
 
+#if 0
     QTest::newRow("10 events, 10 contacts") << 10 << 10 << 0;
     QTest::newRow("10 events, 10 contacts with limit") << 10 << 10 << 3;
     QTest::newRow("100 events, 10 contacts") << 100 << 10 << 0;
@@ -64,6 +65,7 @@ void RecentContactsModelPerfTest::getEvents_data()
     QTest::newRow("1000 events, 100 contacts with limit") << 1000 << 100 << 33;
     QTest::newRow("1000 events, 1000 contacts") << 1000 << 1000 << 0;
     QTest::newRow("1000 events, 1000 contacts with limit") << 1000 << 1000 << 333;
+#endif
     QTest::newRow("10000 events, 1000 contacts") << 10000 << 1000 << 0;
     QTest::newRow("10000 events, 1000 contacts with limit") << 10000 << 1000 << 333;
 }
@@ -183,9 +185,10 @@ void RecentContactsModelPerfTest::getEvents()
 
     QList<int> times;
 
-    int iterations = 10;
+    //int iterations = 10;
+    int iterations = 3;
     #ifdef PERF_ITERATIONS
-    iterations = PERF_ITERATIONS;
+    //iterations = PERF_ITERATIONS;
     #endif
 
     char *iterVar = getenv("PERF_ITERATIONS");
