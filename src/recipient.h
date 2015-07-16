@@ -80,8 +80,10 @@ public:
     bool operator==(const Recipient &o) const;
     bool operator!=(const Recipient &o) const { return !operator==(o); }
     bool matches(const Recipient &o) const;
-    bool matches(const QString &remoteUid) const;
     bool isSameContact(const Recipient &o) const;
+
+    bool matchesRemoteUid(const QString &remoteUid) const;
+    bool matchesPhoneNumber(const QPair<QString, quint32> &phoneNumber) const;
 
     int contactId() const;
     QString contactName() const;
@@ -105,6 +107,10 @@ public:
      * had no contact matches.
      */
     static QList<Recipient> recipientsForContact(int contactId);
+
+    /* Return the string in the form suitable for testing phone number matches
+     */
+    static QPair<QString, quint32> phoneNumberMatchDetails(const QString &s);
 
 private:
     QSharedPointer<RecipientPrivate> d;
