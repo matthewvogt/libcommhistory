@@ -46,7 +46,7 @@ static bool initialized = initializeTypes();
 
 inline bool contactGroupSort(ContactGroup *a, ContactGroup *b)
 {
-    return a->endTime() > b->endTime(); // descending order
+    return a->endTimeT() > b->endTimeT(); // descending order
 }
 
 }
