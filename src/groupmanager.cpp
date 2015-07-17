@@ -259,7 +259,7 @@ void GroupManagerPrivate::eventsAddedSlot(const QList<Event> &events)
         if (!go)
             continue;
 
-        if (event.endTime() >= go->endTime()) {
+        if (event.endTimeT() >= go->endTimeT()) {
             DEBUG() << __PRETTY_FUNCTION__ << ": updating group" << go->id();
             go->setLastEventId(event.id());
             if (event.type() == Event::MMSEvent) {
@@ -272,8 +272,8 @@ void GroupManagerPrivate::eventsAddedSlot(const QList<Event> &events)
             go->setLastEventStatus(event.status());
             go->setLastEventType(event.type());
             go->setLastEventIsDraft(event.isDraft());
-            go->setStartTime(event.startTime());
-            go->setEndTime(event.endTime());
+            go->setStartTimeT(event.startTimeT());
+            go->setEndTimeT(event.endTimeT());
         }
 
         if (!event.isRead())
@@ -486,9 +486,8 @@ bool GroupManager::modifyGroup(Group &group)
     if (!d->database()->transaction())
         return false;
 
-    if (group.lastModified() == QDateTime::fromTime_t(0)) {
-         group.setLastModified(QDateTime::currentDateTime());
-    }
+    if (group.lastModifiedT() == 0)
+        group.setLastModifiedT(Event::currentTime_t());
 
     if (!d->database()->modifyGroup(group)) {
         d->database()->rollback();
