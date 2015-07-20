@@ -25,11 +25,11 @@
 #include <QSqlQuery>
 
 #include "commonutils.h"
+#include "contactresolver.h"
 #include "databaseio.h"
 #include "databaseio_p.h"
 #include "eventmodel.h"
 #include "groupmanager.h"
-#include "groupmanager_p.h"
 #include "updatesemitter.h"
 #include "group.h"
 #include "event.h"
@@ -50,6 +50,73 @@ bool initializeTypes()
 static bool initialized = initializeTypes();
 
 const int defaultChunkSize = 50;
+
+}
+
+namespace CommHistory {
+
+class DatabaseIO;
+class UpdatesEmitter;
+
+class GroupManagerPrivate : public QObject
+{
+    Q_OBJECT
+
+    Q_DECLARE_PUBLIC(GroupManager)
+
+public:
+    GroupManager *q_ptr;
+
+    GroupManagerPrivate(GroupManager *parent = 0);
+    ~GroupManagerPrivate();
+
+    bool groupMatchesFilter(const Group &group) const;
+
+    void add(const Group &group);
+    void addGroups(const QList<Group> &groups);
+
+    void modifyInModel(Group &group, bool query = true);
+
+    bool canFetchMore() const;
+
+    bool commitTransaction(const QList<int> &groupIds);
+
+    DatabaseIO* database();
+
+public Q_SLOTS:
+    void eventsAddedSlot(const QList<CommHistory::Event> &events);
+
+    void groupsAddedSlot(const QList<CommHistory::Group> &addedGroups);
+
+    void groupsUpdatedSlot(const QList<int> &groupIds);
+    void groupsUpdatedFullSlot(const QList<CommHistory::Group> &groups);
+
+    void groupsDeletedSlot(const QList<int> &groupIds);
+
+    void slotContactInfoChanged(const RecipientList &recipients);
+    void contactResolveFinished();
+
+public:
+    EventModel::QueryMode queryMode;
+    int chunkSize;
+    int firstChunkSize;
+    int queryLimit;
+    int queryOffset;
+    bool isReady;
+    QHash<int,GroupObject*> groups;
+
+    QString filterLocalUid;
+    QString filterRemoteUid;
+
+    QThread *bgThread;
+
+    QSharedPointer<ContactListener> contactListener;
+    ContactResolver *contactResolver;
+    bool resolveContacts;
+    QSharedPointer<UpdatesEmitter> emitter;
+
+    QList<Group> pendingResolve;
+};
 
 }
 
@@ -648,4 +715,6 @@ void GroupManager::setResolveContacts(bool enabled)
 
     emit resolveContactsChanged();
 }
+
+#include "groupmanager.moc"
 

@@ -23,7 +23,6 @@ HEADERS += commonutils.h \
            mmsreadreportmodel.h \
            groupobject.h \
            groupmanager.h \
-           groupmanager_p.h \
            contactgroupmodel.h \
            contactgroup.h \
            databaseio.h \
