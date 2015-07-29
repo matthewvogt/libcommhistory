@@ -165,7 +165,7 @@ void GroupModelProfileTest::execute()
         GroupModel fetchModel;
 
         GroupManager manager;
-        manager.setResolveContacts(resolve);
+        manager.setResolveContacts(resolve ? GroupManager::ResolveImmediately : GroupManager::DoNotResolve);
 
         fetchModel.setManager(&manager);
 
